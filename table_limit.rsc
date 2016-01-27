@@ -1,9 +1,10 @@
-:local infile;
-:local tofile;
 :local queuename;
-:local ftpaddr set 192.168.0.1;
-:local ftpuser set mikrotik;
-:local ftppass set mikrotik;
+:local ftpaddr; 
+:set $ftpaddr "192.168.0.1";
+:local ftpuser;
+set $ftpuser mikrotik;
+:local ftppass;
+set $ftppass mikrotik;
 :local queueip;
 :local queueiparray;
 :local limit;
@@ -19,7 +20,14 @@
 if ($comment != "no") do={
 :set queuename [/queue simple get number=$y name];
 :set queueiparray [:toarray [/queue simple get number=$y target]];
-:set limit [:pick $comment ([:find $comment "/"]+1) [:len $comment]];;
+:do {:set $findslash [:find $comment "/"];} on-error={:put "error";}
+	#if we have "/", lets go parse comment from comment
+	if ( $findslash > 0) do={
+		:set $limit [:pick $comment ([:find $comment "/"]+1) [:len $comment]];
+		} else={
+		:set $limit [/queue simple get "$n" comment];
+		}
+:put $limit;
 :set limitfull ($limitfull + $limit);
 :set queuespeed [/queue simple get number=$y max-limit];
 for i from 0 to=([:len [/queue simple get number=$y target]]-1) do={
